@@ -124,24 +124,6 @@ unsigned long Wiegand34::GetCardId (volatile unsigned long *codehigh, volatile u
 }
 
 /**
- * @brief Calculate parity of a value by adding n bits
- * 
- * @param v - Value to calculate parity
- * @param n - Number of bits to sum
- * @return true - Odd parity (1)
- * @return false - Even parity (0)
- */
-bool Wiegand34::parityCalc(unsigned long v, int n){
-	int count=0;
-	for (int i = 0; i <= n; i++) {
-		// sum every bit to calculate parity if even(0) if odd(1)
-		count += v & 1; 
-    	v >>= 1;
-	}
-	return count % 2;	
-}
-
-/**
  * @brief Check if the recieved Wiegand 34 message it's valid after a timout
  * 
  * @return true - The recieved message it's 34 bits and the parity is correct
@@ -153,22 +135,7 @@ bool Wiegand34::DoWiegandConversion () {
 	if ((sysTick - _lastPulseTime) > 25) {	// if no more signal coming through after 25ms
 		if (_bitCount==34) {	// bitCount for Wiegand 34
 			_cardTemp >>= 1;	// shift right 1 bit to get back the real value - interrupt done 1 left shift in advance
-			
-			// in wiegand 34 the first an the last bit are for parity
-			bool leftParity = _cardTempHigh>>2 & 0x01; 
-            bool rightParity = _cardTemp & 0x01;
-			bool rpar = parityCalc(_cardTemp & 0x1FFFF, _bitCount/2); // calculate parity for the firt half of bits
-			bool lpar = parityCalc((_cardTempHigh<<15) | _cardTemp, _bitCount/2); // calculate parity for the rest
-
-            if (leftParity == lpar && rightParity == rpar) {	// parity is correct
-				_code = GetCardId (&_cardTempHigh, &_cardTemp);	// get the card code
-			} 
-			else {	// parity error
-				_bitCount = 0;
-				_cardTemp = 0;
-				_cardTempHigh = 0;
-				return false;
-			}
+			_code = GetCardId (&_cardTempHigh, &_cardTemp);	// get the card code
 			_bitCount = 0;
 			_cardTemp = 0;
 			_cardTempHigh = 0;
