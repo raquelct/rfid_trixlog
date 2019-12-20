@@ -37,7 +37,7 @@ void SimpleProtocol::send(unsigned char id, unsigned char cHigh, unsigned char c
     int index = 0;
 
     for(int i = 0; i < 7; i++) {
-        if(tmpBuffer[i] == START || tmpBuffer[i] == STOP || tmpBuffer[i] == 10){    // vheck if the value is a reserved character
+        if(tmpBuffer[i] == START || tmpBuffer[i] == STOP || tmpBuffer[i] == MASK_CHAR){    // vheck if the value is a reserved character
            mask(tmpBuffer[i]);  // if so mask the value
            sendBuffer[index] = msk[1];  // put the masked value in a array to be sent
            sendBuffer[index+1] = msk[0];    
@@ -88,6 +88,6 @@ unsigned char SimpleProtocol::checksum(unsigned char * buffer, int size) {
  * @return unsigned char* - An array with the masked value 
  */
 void SimpleProtocol::mask(unsigned char value) {
-    msk[1] = 10;            // Put 10 in front
+    msk[1] = MASK_CHAR;            // Put 10 in front
     msk[0] = value + 20;    // sum the value + 20
 }

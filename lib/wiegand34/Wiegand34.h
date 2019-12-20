@@ -26,7 +26,7 @@ class Wiegand34 {
 		static void ReadD1();
 		static bool DoWiegandConversion();
 		static unsigned long GetCardId(volatile unsigned long *codehigh, volatile unsigned long *codelow);
-		static bool parityCalc(unsigned long v, int n);
+		static bool parityCalc(unsigned long v, int n, bool type);
 		
 		static volatile unsigned long _cardTempHigh;
 		static volatile unsigned long _cardTemp;

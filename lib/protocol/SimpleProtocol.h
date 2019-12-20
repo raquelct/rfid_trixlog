@@ -16,6 +16,7 @@
 
 #define START 0x01
 #define STOP 0x04
+#define MASK_CHAR 0x0A
 
 class SimpleProtocol {
     public:

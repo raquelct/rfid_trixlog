@@ -128,17 +128,22 @@ unsigned long Wiegand34::GetCardId (volatile unsigned long *codehigh, volatile u
  * 
  * @param v - Value to calculate parity
  * @param n - Number of bits to sum
- * @return true - Odd parity (1)
- * @return false - Even parity (0)
+ * @param type - Parity Type - True = Even, False = Odd
+ * @return true - Type = true: number of bits 1 is even, Type = false: number of bits 1 is odd
+ * @return false - Type = true: number of bits 1 is odd, Type = false: number of bits 1 is even
  */
-bool Wiegand34::parityCalc(unsigned long v, int n){
+bool Wiegand34::parityCalc(unsigned long v, int n, bool type){
 	int count=0;
 	for (int i = 0; i <= n; i++) {
 		// sum every bit to calculate parity if even(0) if odd(1)
 		count += v & 1; 
     	v >>= 1;
 	}
-	return count % 2;	
+	
+	if (type)
+		return (count % 2);	
+	else
+		return !(count % 2);
 }
 
 /**
@@ -154,11 +159,14 @@ bool Wiegand34::DoWiegandConversion () {
 		if (_bitCount==34) {	// bitCount for Wiegand 34
 			_cardTemp >>= 1;	// shift right 1 bit to get back the real value - interrupt done 1 left shift in advance
 			
-			// in wiegand 34 the first an the last bit are for parity
-			bool leftParity = _cardTempHigh>>2 & 0x01; 
-            bool rightParity = _cardTemp & 0x01;
-			bool rpar = parityCalc(_cardTemp & 0x1FFFF, _bitCount/2); // calculate parity for the firt half of bits
-			bool lpar = parityCalc((_cardTempHigh<<15) | _cardTemp, _bitCount/2); // calculate parity for the rest
+			// in wiegand 34 the first(Odd) an the last(Even) bit are for parity
+			bool rightParity = _cardTemp & 0x01;
+			bool leftParity = _cardTempHigh>>2 & 0x01;
+			Serial.println(_cardTemp);
+			Serial.println(_cardTempHigh); 
+			// use only the 32 bits useful data for calculate parity
+			bool rpar = parityCalc(_cardTemp>>1 & 0xFFFF, (_bitCount-2)/2, true); // calculate parity for the firt half of bits(16) eliminating the first bit
+			bool lpar = parityCalc((_cardTempHigh<<14) | (_cardTemp>>17), (_bitCount-2)/2, false); // calculate parity for the rest 16 bits
 
             if (leftParity == lpar && rightParity == rpar) {	// parity is correct
 				_code = GetCardId (&_cardTempHigh, &_cardTemp);	// get the card code
