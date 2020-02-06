@@ -10,12 +10,17 @@
  */
 
 #include <Arduino.h>
-#include "Wiegand34.h"
+#include "Wiegand.h"
 #include "SimpleProtocol.h"
 
 #define DEVICE_ID 0xC5
 
-Wiegand34 wg;
+const int pinD0 = 18;
+const int pinD1 = 19;
+const int ledG = 26;
+const int ledR = 27;
+
+Wiegand wg;
 SimpleProtocol sp;
 
 uint16_t msgCount = 0;
@@ -24,7 +29,9 @@ unsigned char * buff;
 void setup() {
   	// put your setup code here, to run once:
   	sp.begin(115200);  
-	wg.begin(18,19); // pinD0, pinD1
+	wg.begin(pinD0, pinD1); // pinD0, pinD1
+	pinMode(ledG, OUTPUT);
+	pinMode(ledR, OUTPUT);
 }
 
 void loop() {
@@ -33,5 +40,13 @@ void loop() {
 		msgCount++;
 		buff = wg.getCodeInBuffer();
 		sp.send(DEVICE_ID, ((msgCount >> 8) & 0xFF), (msgCount & 0xFF), buff);
+		digitalWrite(ledR, LOW);
+		digitalWrite(ledG, HIGH);
+		delay(500);
 	}
+	else {
+		digitalWrite(ledR, HIGH);
+		digitalWrite(ledG, LOW);
+	}
+	
 }
